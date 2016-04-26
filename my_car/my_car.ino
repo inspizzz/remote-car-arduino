@@ -1,13 +1,11 @@
+
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include "Adafruit_BLE.h"
-#include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
 #include "BluefruitConfig.h"
 
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_MS_PWMServoDriver.h"
 #include <Servo.h>
 
 // create servo object to control a servo
@@ -53,24 +51,21 @@ void setup() {
 
 
 void loop() {  
-  Serial.println("tick");
-
-  ble.readline();
-  Serial.println(ble.buffer);
+  ble.readline(100);
   
+  char val[10];
   if (! strcmp(ble.buffer, "START") ) {
     Serial.println("Starting");
     myMotor->run(FORWARD);
   } else if ( ! strcmp(ble.buffer, "STOP") ) {
     Serial.println("Stopping"); 
     myMotor->run(RELEASE);
-  } else if ( strncmp(ble.buffer, "TURN", 4) == 0 ) {
-    strtok(ble.buffer, ":");
-    char *val = strtok(NULL, ":");
+  } else if ( ! strcmp(ble.buffer, "REVERSE") ) {
+    Serial.println("Reversing"); 
+    myMotor->run(BACKWARD);  
+  } else if ( sscanf(ble.buffer, "TURN:%s", val ) == 1 ) { 
     Serial.print("Turning: ");
-    Serial.println(val);
     myservo.write(atoi(val));
-    delay(15);
   } else {
     Serial.println("Wrong command");
   }
